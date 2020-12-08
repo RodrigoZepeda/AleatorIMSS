@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<!-- Developed by Rodrigo Zepeda -->
+<!-- MIT LICENSE
+    Copyright 2020 Rodrigo Zepeda
+    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+    associated documentation files (the "Software"), to deal in the Software without restriction,
+    including without limitation the rights to use, copy, modify, merge, publish, distribute,
+    sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+    is furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in all copies or substantial
+    portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+    INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+    PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+    DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta name="theme-color" content="#4285f4">
+    <meta name="description" content="Mecanismo de aleatorización para empresas">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="keywords" content="IMSS, Aleatorio, Selección, Pruebas, Antígeno">
+    <meta name="author" content="Instituto Mexicano del Seguro Social">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <!--<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="manifest" href="images/site.webmanifest">
+    <link rel="mask-icon" href="images/safari-pinned-tab.svg" color="#5bbad5">-->
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="theme-color" content="#ffffff">
+
+    <title>AleatorIMSS</title>
+    <link rel="shortcut icon" href="http://www.imss.gob.mx/sites/all/statics/favicon.ico" type="image/vnd.microsoft.icon">
+    <link rel="stylesheet" type="text/css" href="styles/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.5/lib/xor128.min.js"></script>
+</head>
+
+<body>
+
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <a class="navbar-brand" href="http://www.imss.gob.mx">Instituto Mexicano del Seguro Social</a>
+        <!--<img src="http://placehold.it/150x50?text=Logo" alt="">-->
+      </nav>
+
+      <main role="main">
+
+        <!-- Main jumbotron for a primary marketing message or call to action -->
+        <div class="jumbotron" style="padding:5px;">
+          <div class="container">
+            <h1>AleatorIMSS</h1>
+            <p>Responde con los datos de tu empresa*</p>
+            <div class = "row">
+              <div class="col-md-3">
+                <div class="form-group">
+                  <label for="formGroupExampleInput"><b>Registro patronal o nombre de la empresa</b></label>
+                  <input type="text" class="form-control" id="registropatronal" placeholder="Registro Patronal">
+                </div>
+                <div class="form-group">
+                  <label for="formGroupExampleInput"><b>Número de trabajadoras y trabajadores en la empresa</b></label>
+                  <input type="number" class="form-control" onkeypress='validate(event)' min="1" id="empleados" placeholder="#Empleados">
+                </div>
+                <div class="form-group">
+                  <label for="formGroupExampleInput"><b>Porcentaje de trabajadoras y trabajadores en la muestra (%)</b></label>
+                  <input type="number" onkeypress='validate(event)' class="form-control" min="0" max="100" id="porcentaje" placeholder="50%">
+                </div>
+              </div>
+              <div class="col-md-9" style="height:250px; overflow:auto;">
+                <table id ="table" class ="table">
+                </table>
+              </div>
+            </div>
+              <div class = "row">
+                <div class="col-md-12">
+                  <button type="button" class="btn btn-success btn-lg btn-block" id="asignar">¡Asignar!</button>
+                </div>
+              </div>
+          </div>
+        </div>
+
+        <div class="container">
+          <!-- Example row of columns -->
+          <div class="row">
+            <div class="col-md-4">
+              <h2>1. Arma tu lista</h2>
+              <p>Genera una lista de todas tus trabajadoras y trabajadores. A cada quien asígnale un número comenzando con el 1. ¡No dejes a nadie afuera!</p>
+            </div>
+            <div class="col-md-4">
+              <h2>2. Rellena el formulario</h2>
+              <p>En el formulario de arriba coloca el número de trabajadoras y trabajadores que tiene la empresa (debe coincidir con el número de personas que registraste en tu lista). Coloca tus datos y da clic en ¡asignar!</p>
+            </div>
+            <div class="col-md-4">
+              <h2>3. Obtén la muestra </h2>
+              <p>Los números que devuelve el aplicativo corresponden al número de trabajador o trabajadora de la lista que armaste en el primer punto. Ellas y ellos participarán en la muestra. Si quieres saber cómo identificarlos de manera rápida usando Excel puedes ver el tutorial 👇.</p>
+              <p><a class="btn btn-secondary" href="https://getbootstrap.com/docs/4.1/examples/jumbotron/#" role="button">Ver tutorial »</a></p>
+            </div>
+          </div>
+
+        </div> <!-- /container -->
+
+      </main>
+
+      <footer class="container">
+        <p>*El presente aplicativo no almacena ninguna información. Los datos son sólo para fines de aleatorización. Instituto Mexicano del Seguro Social 2020</p>
+      </footer>
+
+      <!-- Funciones para aleatorizar -->
+      <script type="text/javascript">
+
+
+      //https://stackoverflow.com/questions/469357/html-text-input-allow-only-numeric-input
+      function validate(evt) {
+        var theEvent = evt || window.event;
+
+        // Handle paste
+        if (theEvent.type === 'paste') {
+            key = event.clipboardData.getData('text/plain');
+        } else {
+        // Handle key press
+            var key = theEvent.keyCode || theEvent.which;
+            key = String.fromCharCode(key);
+        }
+        var regex = /[0-9]|\./;
+        if( !regex.test(key) ) {
+          theEvent.returnValue = false;
+          if(theEvent.preventDefault) theEvent.preventDefault();
+        }
+        }
+        //https://stackoverflow.com/questions/11935175/sampling-a-random-subset-from-an-array/19631135
+        function getRandomSubarray(arr, size, mathrng) {
+            var shuffled = arr.slice(0), i = arr.length, temp, index;
+            while (i--) {
+                index = Math.floor((i + 1) * mathrng());
+                temp = shuffled[index];
+                shuffled[index] = shuffled[i];
+                shuffled[i] = temp;
+            }
+            return shuffled.slice(0, size);
+        }
+
+        document.getElementById("asignar").onclick = function() {
+
+          //Obtener variables para calcular la randomización
+          var registropatronal = document.getElementById("registropatronal");
+          var empleados = document.getElementById("empleados");
+          var porcentaje = document.getElementById("porcentaje");
+
+          if (registropatronal.value == ""){
+            alert("Por favor rellena el campo de Registro Patronal o Nombre de la Empresa");
+          }
+
+          if (porcentaje.value == ""){
+            alert("Por favor rellena el campo de porcentaje de trabajadores y trabajadoras");
+          }
+
+          if (empleados.value == ""){
+            alert("Por favor rellena el campo de empleados");
+          }
+
+          if ( Number(porcentaje.value) > 100 ){
+            alert("El porcentaje más alto a muestrear es 100% que corresponde a toda la empresa");
+            porcentaje.value = "100";
+          } else if (Number(porcentaje.value) <= 0) {
+            alert("El porcentaje a muestrear debe ser mayor al 0%");
+            porcentaje.value = "10";
+          }
+
+          if (Number(empleados.value) < 1){
+            alert("Al menos 1 trabajador o trabajadora debe pertenecer a la empresa")
+            empleados.value = "1";
+          }
+
+          Randomize(registropatronal.value, empleados.value, porcentaje.value)
+
+        };
+
+        Randomize = function(registropatronal, empleados, porcentaje) {
+
+          //Pseudorandom numbr
+          //https://github.com/davidbau/seedrandom
+          var today = new Date();
+          var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+
+          var mathrng = new xor128(registropatronal + "_" + date);
+
+          //Pasamos a número
+          empleados  = Number(empleados);
+          porcentaje = Number(porcentaje);
+
+          //Arreglo con el número de empleados
+          var arreglo_empleados = Array.from({length: Math.floor(empleados)}, (_, i) => i + 1)
+          var nsample = Math.min(empleados, Math.ceil(empleados*porcentaje/100.0))
+
+          var muestra = getRandomSubarray(arreglo_empleados, nsample, mathrng);
+
+          var theTable = document.getElementById('table');
+          theTable.innerHTML = "<thead><tr><th>Número de trabajador o trabajadora</th></tr></thead><tbody></tbody>";
+          // Note, don't forget the var keyword!
+          var tr, td;
+          for (var i = 0; i < muestra.length; i++) {
+              tr = document.createElement('tr');
+              td = document.createElement('td');
+              td.appendChild(document.createTextNode(muestra[i]));
+              tr.appendChild(td);
+              theTable.appendChild(tr);
+          }
+
+          //document.getElementById('table').appendChild(theTable);
+
+          var csvString = muestra.join("\n");
+          var a         = document.createElement('a');
+          a.href        = 'data:attachment/csv,' + "Numero_del_trabajador_o_trabajadora\n" + csvString;
+          a.target      = '_blank';
+          a.download    = 'IMSS_' + registropatronal + '_muestra.csv';
+
+          document.body.appendChild(a);
+          a.click();
+
+          return(muestra);
+
+        }
+
+        window.onload = function() {
+          console.log("hola")
+        };
+      </script>
+  <!-- /#wrapper -->
+</body>
+
+</html>
